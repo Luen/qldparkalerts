@@ -27,6 +27,7 @@ const file = filename + ".json";
                 results.find("pubDate").text() === f.pubDate
             ) {
                 console.log("Already up-to-date");
+                //return;
             }
         }
 
@@ -46,7 +47,6 @@ const file = filename + ".json";
                 xmlMode: true
             });
             const id = $("link").text().split("/").pop();
-            console.log(id);
             axios
                 .get(`${alertURLBase}${id}`)
                 .then(response => {
@@ -88,10 +88,37 @@ const file = filename + ".json";
                             longLat
                         };
                     })
-                })
-        })
+                                        
+                    let category = $('dl[class=attributes] dd',0).text();
+                    let applies = $('dl[class=attributes] dd',1).text().trim();
+                    let published = $('dl[class=attributes] dd',2).text();
+                    let updated = "";
+                    if ($('dl[class=attributes] dt',3).text().toLowerCase().trim() === "updated:") {
+                        updated = $('dl[class=attributes] dd',3).text().trim();
+                    }
 
-        fs.writeFileSync(file, JSON.stringify(jsonAlerts));
+                    let description = $('div[id=park-alert] p[class=introduction]',0).text().trim();
+                    let subdescription = $('div[id=park-alert] p[class=introduction]',0).next().text().trim();
+
+                  jsonAlerts.alerts.push({
+                                title: title,
+                                description: description,
+                                subdescription: subdescription,
+                                category: category,
+                                link: link,
+                                guid: guid,
+                                version: v,
+                                published: published,
+                                updated: updated,
+                                applies: applies,
+                                closure: closure,
+                                appliesTo: selectedParks
+                    })
+                })
+        }).then(() => {
+          fs.writeFileSync(file, JSON.stringify(jsonAlerts))
+      });
+        
     } catch (err) {
         console.log(err)
     }
